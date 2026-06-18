@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="893px" height="703px" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <mask fill="white" id="clip1">
+      <path d="M 0 671.578595317726  L 0 11.4214046822742  C 0 5.02541806020068  5.46401137980085 0  12.4182076813656 0  L 308.799431009959 0  L 860.581792318634 0  C 867.535988620199 0  873 5.02541806020068  873 11.4214046822742  L 873 671.578595317726  C 873 677.974581939799  867.535988620199 683  860.581792318634 683  L 12.4182076813656 683  C 5.46401137980085 683  0 677.974581939799  0 671.578595317726  Z " fill-rule="evenodd" />
+    </mask>
+    <filter x="11px" y="1091px" width="893px" height="703px" filterUnits="userSpaceOnUse" id="filter2">
+      <feOffset dx="0" dy="0" in="SourceAlpha" result="shadowOffsetInner" />
+      <feGaussianBlur stdDeviation="5" in="shadowOffsetInner" result="shadowGaussian" />
+      <feComposite in2="shadowGaussian" operator="atop" in="SourceAlpha" result="shadowComposite" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.666666666666667  0 0 0 0 0.666666666666667  0 0 0 0 0.666666666666667  0 0 0 0.349019607843137 0  " in="shadowComposite" />
+    </filter>
+    <g id="widget3">
+      <path d="M 0 671.578595317726  L 0 11.4214046822742  C 0 5.02541806020068  5.46401137980085 0  12.4182076813656 0  L 308.799431009959 0  L 860.581792318634 0  C 867.535988620199 0  873 5.02541806020068  873 11.4214046822742  L 873 671.578595317726  C 873 677.974581939799  867.535988620199 683  860.581792318634 683  L 12.4182076813656 683  C 5.46401137980085 683  0 677.974581939799  0 671.578595317726  Z " fill-rule="nonzero" fill="#ffffff" stroke="none" transform="matrix(1 0 0 1 21 1101 )" />
+      <path d="M 0 671.578595317726  L 0 11.4214046822742  C 0 5.02541806020068  5.46401137980085 0  12.4182076813656 0  L 308.799431009959 0  L 860.581792318634 0  C 867.535988620199 0  873 5.02541806020068  873 11.4214046822742  L 873 671.578595317726  C 873 677.974581939799  867.535988620199 683  860.581792318634 683  L 12.4182076813656 683  C 5.46401137980085 683  0 677.974581939799  0 671.578595317726  Z " stroke-width="2" stroke="#d7d7d7" fill="none" transform="matrix(1 0 0 1 21 1101 )" mask="url(#clip1)" />
+    </g>
+  </defs>
+  <g transform="matrix(1 0 0 1 -11 -1091 )">
+    <use xlink:href="#widget3" filter="url(#filter2)" />
+    <use xlink:href="#widget3" />
+  </g>
+</svg>
