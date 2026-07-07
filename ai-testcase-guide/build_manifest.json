@@ -1,6 +1,12 @@
 {
-  "source": "D:\\数据测试\\ai_guide_site_final",
-  "sections": 8,
+  "source_document": "source\\documents\\ai-testcase-guide-source.docx",
+  "template": "source\\template\\index.html",
+  "assets": "source\\assets",
   "prompts": 4,
-  "figures": 3
+  "prompt_line_counts": [
+    40,
+    44,
+    23,
+    31
+  ]
 }
