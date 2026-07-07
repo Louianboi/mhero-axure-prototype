@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI驱动的测试用例指南及要求</title>
+  <title>AI驱动的测试用例指南</title>
   <style>
 :root {
   color-scheme: light;
@@ -157,7 +157,28 @@ body::before {
 .nav-shell {
   max-height: calc(100vh - 112px);
   overflow: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-color: color-mix(in srgb, var(--muted) 64%, transparent) transparent;
 }
+.nav-shell::-webkit-scrollbar { width: 12px; }
+.nav-shell::-webkit-scrollbar-track {
+  border-radius: 20px;
+  background: transparent;
+}
+.nav-shell::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 64%, transparent);
+  background-clip: padding-box;
+}
+.nav-shell::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.nav-shell::-webkit-scrollbar-corner { background: transparent; }
 .nav-title, .rail-title {
   margin: 4px 8px 12px;
   color: var(--muted);
@@ -564,6 +585,19 @@ td:last-child { border-right: 0; }
   color: color-mix(in srgb, var(--text) 88%, var(--muted));
   line-height: 1.75;
 }
+.warning-list .warning-item:nth-last-child(2) {
+  margin-bottom: -12px;
+  border-bottom: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-bottom: 8px;
+}
+.warning-list .warning-item:last-child {
+  border-top: 0;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+  padding-top: 8px;
+}
 .figure-card {
   overflow: hidden;
   border-radius: 20px;
@@ -687,7 +721,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible {
 <body>
   <div class="progressbar" aria-hidden="true"><span id="pageProgress"></span></div>
   <header class="topbar">
-    <a class="brand" href="#"><span>AI驱动的测试用例指南及要求</span></a>
+    <a class="brand" href="#"><span>AI驱动的测试用例指南</span></a>
     <div class="top-actions">
       <button class="text-btn mobile-only" id="openDrawer" type="button" aria-expanded="false" aria-controls="tocDrawer">目录</button>
       <button class="icon-btn" data-theme-toggle type="button" aria-label="切换深浅色模式">◐</button>
@@ -744,7 +778,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible {
       <section class="hero" aria-labelledby="page-title">
         <div class="hero-inner">
           <div class="eyebrow">AI Testing Workbench · Method Guide</div>
-          <h1 id="page-title"><span class="gradient-text">AI驱动的测试用例指南及要求</span></h1>
+          <h1 id="page-title"><span class="gradient-text">AI驱动的测试用例指南</span></h1>
           <p class="hero-subtitle">从需求、截图、提示词到 Excel / XMind 测试资产的完整生成与复核指南</p>
           <div class="tag-row" aria-label="内容标签">
             <span class="tag">AI 测试</span><span class="tag">Prompt 模板</span><span class="tag">WorkBuddy</span><span class="tag">Excel 用例</span><span class="tag">XMind</span><span class="tag">复核标准</span><span class="tag">数据脱敏</span>
