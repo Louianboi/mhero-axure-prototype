@@ -806,7 +806,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible {
 <p>WorkBuddy：https://www.codebuddy.cn/work/</p>
 <h3 id="_Toc234238599">1.4 推荐使用路径选择</h3>
 <p>为了让从未使用过AI的测试人员快速上手，建议先根据手头材料和期望产物选择使用路径。</p>
-<div class="bento-grid bento-1"><a class="bento-card" href="#section-4"><h4>新手首次使用AI生成测试用例</h4><p><strong>推荐路径：</strong>优先使用第4章 WorkBuddy 技能/工作流</p><p><strong>适用情况：</strong>不熟悉提示词写法，希望先获得稳定结构化输出</p><p><strong>后续复核：</strong>统一按第5章复核</p></a><a class="bento-card" href="#_TocAICompatible016"><h4>只需要 Excel/表格测试用例</h4><p><strong>推荐路径：</strong>ui-test-case-generator</p><p><strong>适用情况：</strong>有业务/功能说明和截图，希望输出结构化表格用例</p><p><strong>后续复核：</strong>统一按第5章复核</p></a><a class="bento-card" href="#_TocAICompatible017"><h4>只需要 XMind 思维导图用例</h4><p><strong>推荐路径：</strong>xmind-test-case-generator</p><p><strong>适用情况：</strong>需要按页面、模块、测试类型组织脑图</p><p><strong>后续复核：</strong>统一按第5章复核</p></a><a class="bento-card" href="#_TocAICompatible018"><h4>需要完整测试资产包</h4><p><strong>推荐路径：</strong>high-coverage-testcase-generation</p><p><strong>适用情况：</strong>有较完整需求文档，需要分析报告、Excel、XMind、自检汇总</p><p><strong>后续复核：</strong>统一按第5章复核</p></a><a class="bento-card" href="#section-3"><h4>没有 WorkBuddy 或需要自定义提示词</h4><p><strong>推荐路径：</strong>第3章提示词模板</p><p><strong>适用情况：</strong>需要手动控制提示词内容、输出细节或无法使用技能/工作流</p><p><strong>后续复核：</strong>统一按第5章复核</p></a></div>
+<div class="bento-grid bento-1"><a class="bento-card" href="#section-4"><h4>新手首次使用AI生成测试用例</h4><p><strong>推荐路径：</strong>优先使用第4章 WorkBuddy 技能/工作流</p><p><strong>适用情况：</strong>不熟悉提示词写法，希望先获得稳定结构化输出</p><p><strong>后续复核：</strong>统一按第5章复核</p></a><a class="bento-card" href="#_TocAICompatible016"><h4>只需要 Excel/表格测试用例</h4><p><strong>推荐路径：</strong>ui-test-case-generator</p><p><strong>适用情况：</strong>有业务/功能说明和截图，希望输出结构化表格用例</p><p><strong>后续复核：</strong>统一按第5章复核</p></a><a class="bento-card" href="#_TocAICompatible017"><h4>只需要 XMind 思维导图用例</h4><p><strong>推荐路径：</strong>xmind-test-case-generator</p><p><strong>适用情况：</strong>需要按页面、模块、测试类型组织脑图</p><p><strong>后续复核：</strong>统一按第5章复核</p></a><a class="bento-card" href="#ai-testcase-guide"><h4>需要完整测试资产包</h4><p><strong>推荐路径：</strong>high-coverage-testcase-generation</p><p><strong>适用情况：</strong>有较完整需求文档，需要分析报告、Excel、XMind、自检汇总</p><p><strong>后续复核：</strong>统一按第5章复核</p></a><a class="bento-card" href="#section-3"><h4>没有 WorkBuddy 或需要自定义提示词</h4><p><strong>推荐路径：</strong>第3章提示词模板</p><p><strong>适用情况：</strong>需要手动控制提示词内容、输出细节或无法使用技能/工作流</p><p><strong>后续复核：</strong>统一按第5章复核</p></a></div>
 <p>路径选择原则：新手优先选择 WorkBuddy 技能/工作流；需要精细控制提示词、无法使用 WorkBuddy 或需要补充特殊业务约束时，再使用第3章提示词模板。无论选择哪条路径，AI输出结果均不得直接投入使用，必须按第5章进行人工复核。</p></div>
 </section>
 
@@ -1098,7 +1098,7 @@ b. "控件/字段名称"：
 <p>输出检查要求：XMind 中应能按测试对象、页面/系统、模块、测试类型、用例分类、测试点查看用例；每个测试点下应包含编号后的测试步骤和对应预期结果；如需求或截图存在不明确内容，应保留【待确认】节点，不得直接忽略。</p>
 </section>
 <section class="scenario-panel" id="workbuddy-high-coverage" data-workbuddy-panel hidden>
-<h3 id="_TocAICompatible018">4.4 使用 high-coverage-testcase-generation 生成完整测试资产包</h3>
+<h3 id="ai-testcase-guide">4.4 使用 high-coverage-testcase-generation 生成完整测试资产包</h3>
 <p>适用目标：当需求文档较完整，或需要一次性交付需求分析报告、Excel 测试用例、跨端联动用例、自检补漏报告、XMind 思维导图测试用例和最终汇总时，使用 high-coverage-testcase-generation。</p>
 <p>WorkBuddy 使用步骤：</p>
 <p>1. 在 WorkBuddy 上选择模型：MiniMax。</p>
@@ -1234,7 +1234,7 @@ b. "控件/字段名称"：
   const workbuddyPanelByHash = new Map([
     ['_TocAICompatible016', 'workbuddy-ui'],
     ['_TocAICompatible017', 'workbuddy-xmind'],
-    ['_TocAICompatible018', 'workbuddy-high-coverage'],
+    ['ai-testcase-guide', 'workbuddy-high-coverage'],
   ]);
   const savedTheme = localStorage.getItem('guide-theme');
   if (savedTheme) root.dataset.theme = savedTheme;
