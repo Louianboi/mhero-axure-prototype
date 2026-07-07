@@ -3,9 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="google-signin-client_id" content="">
   <title>AI驱动的测试用例指南及要求</title>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
 :root {
   color-scheme: light;
@@ -651,77 +649,6 @@ td:last-child { border-right: 0; }
   border-radius: 18px;
   box-shadow: 0 30px 80px rgba(0,0,0,.42);
 }
-.auth-gate {
-  position: fixed;
-  inset: 0;
-  z-index: 220;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(18px, 4vw, 44px);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-soft) 92%, transparent), color-mix(in srgb, var(--bg) 96%, transparent)),
-    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--cyan) 24%, transparent), transparent 34%);
-}
-.auth-locked {
-  overflow: hidden;
-}
-.auth-locked .progressbar,
-.auth-locked .topbar,
-.auth-locked .drawer,
-.auth-locked .drawer-backdrop,
-.auth-locked .layout,
-.auth-locked .lightbox {
-  pointer-events: none;
-  user-select: none;
-  filter: blur(7px);
-}
-.auth-locked .auth-gate {
-  display: flex;
-}
-.auth-panel {
-  width: min(100%, 460px);
-  border: 1px solid var(--line-strong);
-  border-radius: 22px;
-  padding: clamp(24px, 5vw, 34px);
-  background: var(--panel-strong);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(22px);
-}
-.auth-kicker {
-  margin: 0 0 10px;
-  color: var(--blue);
-  font-size: 12px;
-  font-weight: 780;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.auth-panel h2 {
-  margin: 0;
-  font-size: clamp(26px, 5vw, 32px);
-  line-height: 1.2;
-}
-.auth-copy {
-  margin: 12px 0 22px;
-  color: var(--muted);
-  line-height: 1.7;
-}
-.google-signin-slot {
-  min-height: 44px;
-}
-.auth-status {
-  min-height: 22px;
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-}
-.auth-user {
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 button:focus-visible, a:focus-visible, summary:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--cyan) 70%, white);
   outline-offset: 3px;
@@ -735,8 +662,6 @@ button:focus-visible, a:focus-visible, summary:focus-visible {
   .layout { display: block; padding: 18px 14px 72px; }
   .side-nav { display: none; }
   .desktop-only { display: none; }
-  .auth-user { max-width: 132px; }
-  .auth-panel { border-radius: 18px; }
   .hero { padding: 26px 20px; border-radius: 22px; }
   .hero h1 { font-size: 38px; }
   .section-card { padding: 22px 18px; border-radius: 20px; }
@@ -759,24 +684,13 @@ button:focus-visible, a:focus-visible, summary:focus-visible {
 }
 </style>
 </head>
-<body class="auth-locked">
-  <div class="auth-gate" id="authGate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <div class="auth-panel">
-      <p class="auth-kicker">Google Account Required</p>
-      <h2 id="authTitle">使用 Google 账号登录后访问</h2>
-      <p class="auth-copy">本页面不开放注册，仅支持 Google 账号授权访问。</p>
-      <div class="google-signin-slot" id="googleSignInButton" aria-live="polite"></div>
-      <p class="auth-status" id="authStatus">正在准备 Google 授权...</p>
-    </div>
-  </div>
+<body>
   <div class="progressbar" aria-hidden="true"><span id="pageProgress"></span></div>
   <header class="topbar">
     <a class="brand" href="#"><span>AI驱动的测试用例指南及要求</span></a>
     <div class="top-actions">
       <button class="text-btn mobile-only" id="openDrawer" type="button" aria-expanded="false" aria-controls="tocDrawer">目录</button>
       <button class="icon-btn" data-theme-toggle type="button" aria-label="切换深浅色模式">◐</button>
-      <button class="text-btn auth-user" id="authUser" type="button" hidden></button>
-      <button class="text-btn" id="signOut" type="button" hidden>退出</button>
     </div>
   </header>
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -1322,129 +1236,8 @@ b. "控件/字段名称"：
     ['_TocAICompatible017', 'workbuddy-xmind'],
     ['_TocAICompatible018', 'workbuddy-high-coverage'],
   ]);
-  const authGate = document.querySelector('#authGate');
-  const authStatus = document.querySelector('#authStatus');
-  const googleSignInButton = document.querySelector('#googleSignInButton');
-  const authUser = document.querySelector('#authUser');
-  const signOutButton = document.querySelector('#signOut');
-  const googleClientId = document.querySelector('meta[name="google-signin-client_id"]')?.content.trim() || '';
-  const authStorageKey = 'guide-google-session';
-  let googleInitAttempts = 0;
-
-  function decodeCredentialPayload(credential) {
-    const [, payload] = String(credential || '').split('.');
-
-    if (!payload) return null;
-
-    try {
-      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-      const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
-      return JSON.parse(decodeURIComponent(escape(atob(padded))));
-    } catch {
-      return null;
-    }
-  }
-
-  function isValidGooglePayload(payload) {
-    const trustedIssuer = payload?.iss === 'https://accounts.google.com' || payload?.iss === 'accounts.google.com';
-    const matchesAudience = googleClientId ? payload?.aud === googleClientId : true;
-    const notExpired = !payload?.exp || payload.exp * 1000 > Date.now();
-
-    return trustedIssuer && matchesAudience && notExpired && Boolean(payload?.email);
-  }
-
-  function unlockPage(payload) {
-    document.body.classList.remove('auth-locked');
-    authGate?.setAttribute('aria-hidden', 'true');
-
-    if (authUser) {
-      authUser.textContent = payload.email || 'Google 账号';
-      authUser.hidden = false;
-      authUser.title = payload.email || '';
-    }
-
-    if (signOutButton) signOutButton.hidden = false;
-  }
-
-  function lockPage(message) {
-    document.body.classList.add('auth-locked');
-    authGate?.removeAttribute('aria-hidden');
-
-    if (authStatus && message) authStatus.textContent = message;
-    if (authUser) authUser.hidden = true;
-    if (signOutButton) signOutButton.hidden = true;
-  }
-
-  function handleCredentialResponse(response) {
-    const payload = decodeCredentialPayload(response?.credential);
-
-    if (!isValidGooglePayload(payload)) {
-      lockPage('Google 授权校验失败，请重新登录。');
-      return;
-    }
-
-    localStorage.setItem(authStorageKey, JSON.stringify({ credential: response.credential }));
-    unlockPage(payload);
-  }
-
-  function initGoogleSignIn() {
-    const savedSession = localStorage.getItem(authStorageKey);
-
-    if (savedSession) {
-      try {
-        const payload = decodeCredentialPayload(JSON.parse(savedSession).credential);
-
-        if (isValidGooglePayload(payload)) {
-          unlockPage(payload);
-          return;
-        }
-      } catch {
-        localStorage.removeItem(authStorageKey);
-      }
-    }
-
-    if (!googleClientId) {
-      lockPage('请先配置 Google OAuth Client ID 后再发布。');
-      return;
-    }
-
-    if (!window.google?.accounts?.id || !googleSignInButton) {
-      if (googleInitAttempts < 20) {
-        googleInitAttempts += 1;
-        window.setTimeout(initGoogleSignIn, 250);
-      }
-
-      lockPage('Google 授权服务加载中，请稍后刷新重试。');
-      return;
-    }
-
-    window.google.accounts.id.initialize({
-      client_id: googleClientId,
-      callback: handleCredentialResponse,
-      auto_select: false,
-      cancel_on_tap_outside: false,
-    });
-    window.google.accounts.id.renderButton(googleSignInButton, {
-      theme: root.dataset.theme === 'dark' ? 'filled_black' : 'outline',
-      size: 'large',
-      type: 'standard',
-      shape: 'pill',
-      text: 'signin_with',
-      width: Math.min(360, googleSignInButton.clientWidth || 360),
-    });
-
-    if (authStatus) authStatus.textContent = '请选择 Google 账号完成授权。';
-  }
-
-  signOutButton?.addEventListener('click', () => {
-    localStorage.removeItem(authStorageKey);
-    lockPage('已退出，请重新使用 Google 账号登录。');
-    initGoogleSignIn();
-  });
-
   const savedTheme = localStorage.getItem('guide-theme');
   if (savedTheme) root.dataset.theme = savedTheme;
-  window.addEventListener('load', initGoogleSignIn);
 
   function setTheme(next) {
     root.dataset.theme = next;
