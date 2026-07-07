@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-signin-client_id" content="">
   <title>AI驱动的测试用例指南及要求</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
 :root {
   color-scheme: light;
@@ -510,6 +512,11 @@ td:last-child { border-right: 0; }
   font-size: 12.5px;
   line-height: 1.55;
 }
+.scenario-option em {
+  color: var(--text);
+  font-style: normal;
+  font-weight: 760;
+}
 .scenario-option[aria-pressed="true"] {
   border-color: color-mix(in srgb, var(--cyan) 58%, var(--line));
   background: color-mix(in srgb, var(--cyan) 12%, var(--panel-strong));
@@ -644,6 +651,77 @@ td:last-child { border-right: 0; }
   border-radius: 18px;
   box-shadow: 0 30px 80px rgba(0,0,0,.42);
 }
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(18px, 4vw, 44px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-soft) 92%, transparent), color-mix(in srgb, var(--bg) 96%, transparent)),
+    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--cyan) 24%, transparent), transparent 34%);
+}
+.auth-locked {
+  overflow: hidden;
+}
+.auth-locked .progressbar,
+.auth-locked .topbar,
+.auth-locked .drawer,
+.auth-locked .drawer-backdrop,
+.auth-locked .layout,
+.auth-locked .lightbox {
+  pointer-events: none;
+  user-select: none;
+  filter: blur(7px);
+}
+.auth-locked .auth-gate {
+  display: flex;
+}
+.auth-panel {
+  width: min(100%, 460px);
+  border: 1px solid var(--line-strong);
+  border-radius: 22px;
+  padding: clamp(24px, 5vw, 34px);
+  background: var(--panel-strong);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px);
+}
+.auth-kicker {
+  margin: 0 0 10px;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 780;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.auth-panel h2 {
+  margin: 0;
+  font-size: clamp(26px, 5vw, 32px);
+  line-height: 1.2;
+}
+.auth-copy {
+  margin: 12px 0 22px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.google-signin-slot {
+  min-height: 44px;
+}
+.auth-status {
+  min-height: 22px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.auth-user {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 button:focus-visible, a:focus-visible, summary:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--cyan) 70%, white);
   outline-offset: 3px;
@@ -657,6 +735,8 @@ button:focus-visible, a:focus-visible, summary:focus-visible {
   .layout { display: block; padding: 18px 14px 72px; }
   .side-nav { display: none; }
   .desktop-only { display: none; }
+  .auth-user { max-width: 132px; }
+  .auth-panel { border-radius: 18px; }
   .hero { padding: 26px 20px; border-radius: 22px; }
   .hero h1 { font-size: 38px; }
   .section-card { padding: 22px 18px; border-radius: 20px; }
@@ -679,13 +759,24 @@ button:focus-visible, a:focus-visible, summary:focus-visible {
 }
 </style>
 </head>
-<body>
+<body class="auth-locked">
+  <div class="auth-gate" id="authGate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-panel">
+      <p class="auth-kicker">Google Account Required</p>
+      <h2 id="authTitle">使用 Google 账号登录后访问</h2>
+      <p class="auth-copy">本页面不开放注册，仅支持 Google 账号授权访问。</p>
+      <div class="google-signin-slot" id="googleSignInButton" aria-live="polite"></div>
+      <p class="auth-status" id="authStatus">正在准备 Google 授权...</p>
+    </div>
+  </div>
   <div class="progressbar" aria-hidden="true"><span id="pageProgress"></span></div>
   <header class="topbar">
     <a class="brand" href="#"><span>AI驱动的测试用例指南及要求</span></a>
     <div class="top-actions">
       <button class="text-btn mobile-only" id="openDrawer" type="button" aria-expanded="false" aria-controls="tocDrawer">目录</button>
       <button class="icon-btn" data-theme-toggle type="button" aria-label="切换深浅色模式">◐</button>
+      <button class="text-btn auth-user" id="authUser" type="button" hidden></button>
+      <button class="text-btn" id="signOut" type="button" hidden>退出</button>
     </div>
   </header>
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -1058,8 +1149,15 @@ b. "控件/字段名称"：
   </header>
   <div class="content-flow"><p>除直接编写提示词生成测试用例外，也可以在 WorkBuddy 中选择已上传的 Skill（技能）或工作流，让 AI 按固定规则生成 Excel 测试用例、XMind 测试用例或完整测试资产包。对于测试新手，推荐优先使用技能/工作流，因为它已经内置了角色设定、输出字段、覆盖范围和自检要求，能够减少重复编写长提示词的成本。</p>
 <h3 id="_Toc234238609">4.1 三种方式的适用场景</h3>
-<div class="bento-grid bento-4"><article class="bento-card"><h4>ui-test-case-generator</h4><p><strong>适用材料：</strong>业务/功能说明 + UI截图、页面截图、原型图或需求片段</p><p><strong>主要作用：</strong>生成可评审、可落库、可转 Excel 的结构化功能测试用例</p><p><strong>推荐产物：</strong>Excel 测试用例或表格测试用例</p></article><article class="bento-card"><h4>xmind-test-case-generator</h4><p><strong>适用材料：</strong>业务/功能说明 + UI截图、页面截图或原型图</p><p><strong>主要作用：</strong>生成按页面、模块、测试类型分层组织的 XMind 思维导图测试用例</p><p><strong>推荐产物：</strong>XMind 测试用例</p></article><article class="bento-card"><h4>high-coverage-testcase-generation</h4><p><strong>适用材料：</strong>完整需求文档、需求原型、截图、流程说明等</p><p><strong>主要作用：</strong>自动完成需求分析、分端用例、跨端联动用例、自检补漏、XMind 和最终汇总</p><p><strong>推荐产物：</strong>Excel + XMind + 分析报告 + 自检报告</p></article></div>
+<div class="scenario-selector" aria-label="WorkBuddy 生成方式选择器">
+  <div class="selector-options">
+    <button class="scenario-option" type="button" data-workbuddy-target="workbuddy-ui" aria-pressed="true"><strong>ui-test-case-generator</strong><span><em>适用材料：</em>业务/功能说明 + UI截图、页面截图、原型图或需求片段</span><span><em>主要作用：</em>生成可评审、可落库、可转 Excel 的结构化功能测试用例</span><span><em>推荐产物：</em>Excel 测试用例或表格测试用例</span></button>
+    <button class="scenario-option" type="button" data-workbuddy-target="workbuddy-xmind" aria-pressed="false"><strong>xmind-test-case-generator</strong><span><em>适用材料：</em>业务/功能说明 + UI截图、页面截图或原型图</span><span><em>主要作用：</em>生成按页面、模块、测试类型分层组织的 XMind 思维导图测试用例</span><span><em>推荐产物：</em>XMind 测试用例</span></button>
+    <button class="scenario-option" type="button" data-workbuddy-target="workbuddy-high-coverage" aria-pressed="false"><strong>high-coverage-testcase-generation</strong><span><em>适用材料：</em>完整需求文档、需求原型、截图、流程说明等</span><span><em>主要作用：</em>自动完成需求分析、分端用例、跨端联动用例、自检补漏、XMind 和最终汇总</span><span><em>推荐产物：</em>Excel + XMind + 分析报告 + 自检报告</span></button>
+  </div>
+</div>
 <p>选择原则：如果只需要 Excel 表格用例，优先选择 ui-test-case-generator；如果只需要脑图结构用例，优先选择 xmind-test-case-generator；如果需求文档较完整、涉及多个页面、多端联动或需要同时交付 Excel 与 XMind，优先选择 high-coverage-testcase-generation。</p>
+<section class="scenario-panel" id="workbuddy-ui" data-workbuddy-panel>
 <h3 id="_TocAICompatible016">4.2 使用 ui-test-case-generator 生成 Excel 测试用例</h3>
 <p>适用目标：根据 UI 截图、页面截图、原型图、业务说明、字段规则、联动逻辑或流程规则，生成结构化的功能测试用例，便于后续复制到 Excel 或测试管理工具中。</p>
 <p>WorkBuddy 使用步骤：</p>
@@ -1071,6 +1169,8 @@ b. "控件/字段名称"：
 <figure class="figure-card"><img src="assets/image1.png" alt="WorkBuddy 操作示例图 1"><figcaption>WorkBuddy 操作示例图 1</figcaption></figure>
 <p>图4-1 WorkBuddy 中使用 ui-test-case-generator 生成 Excel 测试用例的操作示例</p>
 <p>输出检查要求：生成结果应包含测试点、优先级、前置条件、测试步骤、预期结果；测试步骤与预期结果必须一一对应；页面控件应使用【】表示；页面或模块名称应使用双引号表示；表格中不得出现 &lt;br&gt; 标签。</p>
+</section>
+<section class="scenario-panel" id="workbuddy-xmind" data-workbuddy-panel hidden>
 <h3 id="_TocAICompatible017">4.3 使用 xmind-test-case-generator 生成 XMind 测试用例</h3>
 <p>适用目标：当用例需要以思维导图方式组织，便于按页面、模块、测试类型、测试点逐层评审时，使用 xmind-test-case-generator。该技能会将测试用例组织为脑图结构，而不是普通表格。</p>
 <p>WorkBuddy 使用步骤：</p>
@@ -1082,6 +1182,8 @@ b. "控件/字段名称"：
 <figure class="figure-card"><img src="assets/image2.jpg" alt="WorkBuddy 操作示例图 2"><figcaption>WorkBuddy 操作示例图 2</figcaption></figure>
 <p>图4-2 WorkBuddy 中使用 xmind-test-case-generator 生成 XMind 测试用例的操作示例</p>
 <p>输出检查要求：XMind 中应能按测试对象、页面/系统、模块、测试类型、用例分类、测试点查看用例；每个测试点下应包含编号后的测试步骤和对应预期结果；如需求或截图存在不明确内容，应保留【待确认】节点，不得直接忽略。</p>
+</section>
+<section class="scenario-panel" id="workbuddy-high-coverage" data-workbuddy-panel hidden>
 <h3 id="_TocAICompatible018">4.4 使用 high-coverage-testcase-generation 生成完整测试资产包</h3>
 <p>适用目标：当需求文档较完整，或需要一次性交付需求分析报告、Excel 测试用例、跨端联动用例、自检补漏报告、XMind 思维导图测试用例和最终汇总时，使用 high-coverage-testcase-generation。</p>
 <p>WorkBuddy 使用步骤：</p>
@@ -1093,6 +1195,7 @@ b. "控件/字段名称"：
 <figure class="figure-card"><img src="assets/image3.png" alt="WorkBuddy 操作示例图 3"><figcaption>WorkBuddy 操作示例图 3</figcaption></figure>
 <p>图4-3 WorkBuddy 中使用 high-coverage-testcase-generation 生成完整测试资产包的操作示例</p>
 <p>输出检查要求：应至少检查是否生成需求分析报告、分端 Excel 测试用例、跨端联动测试用例、自检报告、XMind 文件和最终汇总；Excel 与 XMind 的用例数量应保持一致；不明确内容应标记为【待确认】；基于测试经验推导的内容应有明确标识。</p>
+</section>
 <h3 id="_TocAICompatible019">4.5 使用技能/工作流时的输入规范</h3>
 <p>为了让测试新手也能稳定获得高质量结果，输入内容应尽量完整、具体、可验证。建议至少包含以下信息：</p>
 <div class="bento-grid bento-4"><article class="bento-card"><h4>页面/功能名称</h4><p><strong>填写建议：</strong>写清被测页面或功能的名称，页面/模块名称使用双引号表示。</p></article><article class="bento-card"><h4>页面路径</h4><p><strong>填写建议：</strong>写清从系统首页到被测页面的导航路径。</p></article><article class="bento-card"><h4>业务/功能说明</h4><p><strong>填写建议：</strong>说明该页面要解决什么业务问题、用户在页面上可以完成哪些操作。</p></article><article class="bento-card"><h4>字段与控件规则</h4><p><strong>填写建议：</strong>写清字段类型、是否必填、取值范围、默认值、格式限制、显隐联动、启用禁用规则。</p></article><article class="bento-card"><h4>操作流程</h4><p><strong>填写建议：</strong>写清新增、编辑、查询、保存、提交、审核、导入、导出、取消、返回等流程。</p></article><article class="bento-card"><h4>截图材料</h4><p><strong>填写建议：</strong>上传清晰完整的页面截图；弹窗、下拉、交互展开态应单独截图。</p></article><article class="bento-card"><h4>特殊关注点</h4><p><strong>填写建议：</strong>补充权限、跨端联动、数据一致性、边界值、异常输入、历史缺陷等重点。</p></article></div>
@@ -1212,9 +1315,136 @@ b. "控件/字段名称"：
   const sections = Array.from(document.querySelectorAll('[data-section]'));
   const scenarioOptions = Array.from(document.querySelectorAll('[data-scenario-target]'));
   const scenarioPanels = Array.from(document.querySelectorAll('[data-scenario-panel]'));
+  const workbuddyOptions = Array.from(document.querySelectorAll('[data-workbuddy-target]'));
+  const workbuddyPanels = Array.from(document.querySelectorAll('[data-workbuddy-panel]'));
+  const workbuddyPanelByHash = new Map([
+    ['_TocAICompatible016', 'workbuddy-ui'],
+    ['_TocAICompatible017', 'workbuddy-xmind'],
+    ['_TocAICompatible018', 'workbuddy-high-coverage'],
+  ]);
+  const authGate = document.querySelector('#authGate');
+  const authStatus = document.querySelector('#authStatus');
+  const googleSignInButton = document.querySelector('#googleSignInButton');
+  const authUser = document.querySelector('#authUser');
+  const signOutButton = document.querySelector('#signOut');
+  const googleClientId = document.querySelector('meta[name="google-signin-client_id"]')?.content.trim() || '';
+  const authStorageKey = 'guide-google-session';
+  let googleInitAttempts = 0;
+
+  function decodeCredentialPayload(credential) {
+    const [, payload] = String(credential || '').split('.');
+
+    if (!payload) return null;
+
+    try {
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+      return JSON.parse(decodeURIComponent(escape(atob(padded))));
+    } catch {
+      return null;
+    }
+  }
+
+  function isValidGooglePayload(payload) {
+    const trustedIssuer = payload?.iss === 'https://accounts.google.com' || payload?.iss === 'accounts.google.com';
+    const matchesAudience = googleClientId ? payload?.aud === googleClientId : true;
+    const notExpired = !payload?.exp || payload.exp * 1000 > Date.now();
+
+    return trustedIssuer && matchesAudience && notExpired && Boolean(payload?.email);
+  }
+
+  function unlockPage(payload) {
+    document.body.classList.remove('auth-locked');
+    authGate?.setAttribute('aria-hidden', 'true');
+
+    if (authUser) {
+      authUser.textContent = payload.email || 'Google 账号';
+      authUser.hidden = false;
+      authUser.title = payload.email || '';
+    }
+
+    if (signOutButton) signOutButton.hidden = false;
+  }
+
+  function lockPage(message) {
+    document.body.classList.add('auth-locked');
+    authGate?.removeAttribute('aria-hidden');
+
+    if (authStatus && message) authStatus.textContent = message;
+    if (authUser) authUser.hidden = true;
+    if (signOutButton) signOutButton.hidden = true;
+  }
+
+  function handleCredentialResponse(response) {
+    const payload = decodeCredentialPayload(response?.credential);
+
+    if (!isValidGooglePayload(payload)) {
+      lockPage('Google 授权校验失败，请重新登录。');
+      return;
+    }
+
+    localStorage.setItem(authStorageKey, JSON.stringify({ credential: response.credential }));
+    unlockPage(payload);
+  }
+
+  function initGoogleSignIn() {
+    const savedSession = localStorage.getItem(authStorageKey);
+
+    if (savedSession) {
+      try {
+        const payload = decodeCredentialPayload(JSON.parse(savedSession).credential);
+
+        if (isValidGooglePayload(payload)) {
+          unlockPage(payload);
+          return;
+        }
+      } catch {
+        localStorage.removeItem(authStorageKey);
+      }
+    }
+
+    if (!googleClientId) {
+      lockPage('请先配置 Google OAuth Client ID 后再发布。');
+      return;
+    }
+
+    if (!window.google?.accounts?.id || !googleSignInButton) {
+      if (googleInitAttempts < 20) {
+        googleInitAttempts += 1;
+        window.setTimeout(initGoogleSignIn, 250);
+      }
+
+      lockPage('Google 授权服务加载中，请稍后刷新重试。');
+      return;
+    }
+
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: handleCredentialResponse,
+      auto_select: false,
+      cancel_on_tap_outside: false,
+    });
+    window.google.accounts.id.renderButton(googleSignInButton, {
+      theme: root.dataset.theme === 'dark' ? 'filled_black' : 'outline',
+      size: 'large',
+      type: 'standard',
+      shape: 'pill',
+      text: 'signin_with',
+      width: Math.min(360, googleSignInButton.clientWidth || 360),
+    });
+
+    if (authStatus) authStatus.textContent = '请选择 Google 账号完成授权。';
+  }
+
+  signOutButton?.addEventListener('click', () => {
+    localStorage.removeItem(authStorageKey);
+    lockPage('已退出，请重新使用 Google 账号登录。');
+    initGoogleSignIn();
+  });
 
   const savedTheme = localStorage.getItem('guide-theme');
   if (savedTheme) root.dataset.theme = savedTheme;
+  window.addEventListener('load', initGoogleSignIn);
 
   function setTheme(next) {
     root.dataset.theme = next;
@@ -1278,6 +1508,39 @@ b. "控件/字段名称"：
     option.addEventListener('click', () => showScenario(option.dataset.scenarioTarget));
   });
   if (scenarioOptions[0]) showScenario(scenarioOptions[0].dataset.scenarioTarget, false);
+
+  function showWorkbuddy(targetId, shouldScroll = true, shouldUpdateHash = true) {
+    let activePanel = null;
+
+    workbuddyOptions.forEach(option => {
+      option.setAttribute('aria-pressed', String(option.dataset.workbuddyTarget === targetId));
+    });
+    workbuddyPanels.forEach(panel => {
+      const isActive = panel.id === targetId;
+      panel.hidden = !isActive;
+      if (isActive) activePanel = panel;
+    });
+
+    const activeHeading = activePanel?.querySelector('h3[id]');
+    if (shouldUpdateHash && activeHeading) {
+      history.replaceState(null, '', `#${activeHeading.id}`);
+    }
+    if (shouldScroll) {
+      (activeHeading || activePanel)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }
+  function showWorkbuddyFromHash() {
+    const targetId = workbuddyPanelByHash.get(window.location.hash.slice(1));
+    if (targetId) showWorkbuddy(targetId, true, false);
+  }
+  workbuddyOptions.forEach(option => {
+    option.addEventListener('click', () => showWorkbuddy(option.dataset.workbuddyTarget));
+  });
+  if (workbuddyOptions[0]) {
+    const initialWorkbuddyTarget = workbuddyPanelByHash.get(window.location.hash.slice(1)) || workbuddyOptions[0].dataset.workbuddyTarget;
+    showWorkbuddy(initialWorkbuddyTarget, false, false);
+  }
+  window.addEventListener('hashchange', showWorkbuddyFromHash);
 
   window.addEventListener('scroll', updateProgress, { passive: true });
   updateProgress();
